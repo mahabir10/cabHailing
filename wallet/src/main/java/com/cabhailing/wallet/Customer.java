@@ -24,11 +24,11 @@ public class Customer {
         return balance;
     }
 
-    public void setBalance(int balance) {
+    synchronized public void setBalance(int balance) {
         this.balance = balance;
     }
 
-    public boolean deductBalance(int amount){
+    synchronized public boolean deductBalance(int amount){
         /*
          * This will return true if balance is successfully deducted.
          * Otherwise will return false
@@ -44,7 +44,7 @@ public class Customer {
         }
     }
 
-    public boolean addBalance(int amount){
+    synchronized public boolean addBalance(int amount){
         /*
          * This will add the given amount to the balance
          * Returns true if successfully added.
