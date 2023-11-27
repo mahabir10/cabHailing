@@ -59,4 +59,10 @@ public class Customer {
             return true;
         }
     }
+
+    @Override
+    public String toString() {
+        return "Customer [custId=" + custId + ", balance=" + balance + "]";
+    }
+
 }
