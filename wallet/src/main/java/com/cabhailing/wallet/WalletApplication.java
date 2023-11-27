@@ -1,7 +1,9 @@
 package com.cabhailing.wallet;
 
-import java.io.File;
+import java.io.BufferedReader;
 import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.*;
 
 import org.springframework.boot.SpringApplication;
@@ -26,20 +28,21 @@ public class WalletApplication {
          *  
          *  The data structure that we will use is the hash. This will map the customer id to their objects. 
         */
-        String test_file_path = "wallet\\src\\main\\resources\\test.txt";
         
-
 		this.customers = new HashMap<Integer, Customer>();
 		int stars = 0;
-
 		List<Integer> customerIds = new ArrayList<Integer>();
-		
-		try {
-			File myObj = new File(test_file_path);
-			Scanner myReader = new Scanner(myObj);
 
-			while (myReader.hasNextLine()) {
-				String data = myReader.nextLine();
+		try {
+			
+
+			InputStream is = getClass().getClassLoader().getResourceAsStream("test.txt");
+			
+			BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+
+			String data;
+
+			while ((data = reader.readLine()) != null) {
 
 				System.out.println(data);
 
@@ -59,9 +62,10 @@ public class WalletApplication {
 					this.initial_balance = Integer.parseInt(data);
 				}
 			}
-			myReader.close();
+			reader.close();
+			is.close();
 
-		} catch (FileNotFoundException e) {
+		} catch (Exception e) {
 			System.out.println("An error occurred. Reading the test file");
 			e.printStackTrace();
 		}
