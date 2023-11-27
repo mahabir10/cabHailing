@@ -1,10 +1,13 @@
 package com.cabhailing.wallet;
 
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
 public class Customer {
     
     // This will contain the customer id and the wallet balance
     private int custId;
     private int balance;
+    private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock(true);
 
     // Constructor
     public Customer(int custId, int balance){
@@ -13,35 +16,68 @@ public class Customer {
     }
 
     public int getCustId() {
-        return custId;
+
+        try{
+            lock.readLock().lock();
+            return custId;
+        }
+        finally{
+            lock.readLock().unlock();
+        }
+        
     }
 
     public void setCustId(int custId) {
-        this.custId = custId;
+        try{
+            lock.writeLock().lock();
+            this.custId = custId;
+        }
+        finally{
+            lock.writeLock().unlock();
+        }
     }
 
     public int getBalance() {
-        return balance;
+        try{
+            lock.readLock().lock();
+            return balance;
+        }
+        finally{
+            lock.readLock().unlock();
+        }
+        
     }
 
-    synchronized public void setBalance(int balance) {
-        this.balance = balance;
+    public void setBalance(int balance) {
+        try{
+            lock.writeLock().lock();
+            this.balance = balance;
+        }
+        finally{
+            lock.writeLock().unlock();
+        }
     }
 
-    synchronized public boolean deductBalance(int amount){
+    public boolean deductBalance(int amount){
         /*
          * This will return true if balance is successfully deducted.
          * Otherwise will return false
         */
         
-
-        if( (this.balance < amount) || (amount < 0) ){
-        return false;
+        try{
+            lock.writeLock().lock();
+            if( (this.balance < amount) || (amount < 0) ){
+                return false;
+            }
+            else{
+                this.balance-=amount;
+                return true;
+            }
         }
-        else{
-        this.balance-=amount;
-        return true;
+        finally{
+            lock.writeLock().unlock();
         }
+        
     }
 
     synchronized public boolean addBalance(int amount){
@@ -51,12 +87,18 @@ public class Customer {
          * Returns false otherwise
         */
 
-        if(amount < 0){
-            return false;
+        try{
+            lock.writeLock().lock();
+            if(amount < 0){
+                return false;
+            }
+            else{
+                this.balance+=amount;
+                return true;
+            }
         }
-        else{
-            this.balance+=amount;
-            return true;
+        finally{
+            lock.writeLock().unlock();
         }
     }
 
