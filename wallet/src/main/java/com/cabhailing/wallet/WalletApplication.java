@@ -2,6 +2,7 @@ package com.cabhailing.wallet;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.*;
@@ -29,16 +30,31 @@ public class WalletApplication {
          *  The data structure that we will use is the hash. This will map the customer id to their objects. 
         */
         
+
+		String val = System.getenv("Docker_Env");
+		System.out.println("Enviromet value = " + val);
+
 		this.customers = new HashMap<Integer, Customer>();
 		int stars = 0;
 		List<Integer> customerIds = new ArrayList<Integer>();
 
 		try {
-			
+						
 
-			InputStream is = getClass().getClassLoader().getResourceAsStream("test.txt");
-			
-			BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+			InputStream is = null;
+			BufferedReader reader;
+
+			if(val == null){
+				// This is not docker
+				is = getClass().getClassLoader().getResourceAsStream("test.txt");
+				reader = new BufferedReader(new InputStreamReader(is));
+			}
+			else{
+				// This means we are inside docker
+				String docker_test_path = "./test.txt";
+				FileReader in = new FileReader(docker_test_path);
+				reader = new BufferedReader(in);
+			}
 
 			String data;
 
@@ -63,7 +79,11 @@ public class WalletApplication {
 				}
 			}
 			reader.close();
-			is.close();
+
+			if(is != null)
+			{
+				is.close();
+			}
 
 		} catch (Exception e) {
 			System.out.println("An error occurred. Reading the test file");
