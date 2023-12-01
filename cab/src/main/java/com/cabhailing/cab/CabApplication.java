@@ -141,28 +141,37 @@ public class CabApplication {
 
 		if(this.cabs.containsKey(cabId)){
 
-			// Then we have to check for its state
-			int state = this.cabs.get(cabId).getState();
+			// Get the writeLock for the cab first
 
-			if(state < 0){
+			try{
+				this.cabs.get(cabId).getWriteLock();
 
-				// Make a request to rideservice instance
+				// Then we have to check for its state
+				int state = this.cabs.get(cabId).getState();
 
-				Map<String, String> test1 = Map.of(
-					"cabId", Integer.toString(cabId),
-					"initialPos", Integer.toString(initialPos));
+				if(state < 0){
 
-				boolean response = make_request( "cabSignsOut" , 8081 , test1);
+					// Make a request to rideservice instance
 
-				if(response == true){
-					this.cabs.get(cabId).setState(0); // Setting it to signed in
-					this.cabs.get(cabId).setPosition(initialPos); // Setting the initial pos
+					Map<String, String> test1 = Map.of(
+						"cabId", Integer.toString(cabId),
+						"initialPos", Integer.toString(initialPos));
+
+					boolean response = make_request( "cabSignsOut" , 8081 , test1);
+
+					if(response == true){
+						this.cabs.get(cabId).setState(0); // Setting it to signed in
+						this.cabs.get(cabId).setPosition(initialPos); // Setting the initial pos
+					}
+
+					return response;
 				}
-
-				return response;
+				else{
+					return false;
+				}
 			}
-			else{
-				return false;
+			finally{
+				this.cabs.get(cabId).releaseWriteLock();
 			}
 
 		}
@@ -186,23 +195,32 @@ public class CabApplication {
 		if(this.cabs.containsKey(cabId)){
 
 			// Then we have to check for its state
-			int state = this.cabs.get(cabId).getState();
+			// First get the write lock for this object. This is because this might potentially change the states
 
-			if(state >= 0){
+			try{
+				this.cabs.get(cabId).getWriteLock();
 
-				// Make a request to rideservice instance
+				int state = this.cabs.get(cabId).getState();
 
-				Map<String, String> test1 = Map.of("cabId", Integer.toString(cabId));
-				boolean response = make_request( "cabSignsOut" , 8081 , test1);
+				if(state >= 0){
 
-				if(response == true){
-					this.cabs.get(cabId).setState(-1); // Setting it to signed out
+					// Make a request to rideservice instance
+
+					Map<String, String> test1 = Map.of("cabId", Integer.toString(cabId));
+					boolean response = make_request( "cabSignsOut" , 8081 , test1);
+
+					if(response == true){
+						this.cabs.get(cabId).setState(-1); // Setting it to signed out
+					}
+
+					return response;
 				}
-
-				return response;
+				else{
+					return false;
+				}
 			}
-			else{
-				return false;
+			finally{
+				this.cabs.get(cabId).releaseWriteLock();
 			}
 
 		}
