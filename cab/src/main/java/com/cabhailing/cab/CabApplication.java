@@ -5,6 +5,7 @@ import java.io.FileReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashMap;
+import java.util.Map;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -85,32 +86,130 @@ public class CabApplication {
 
 	@GetMapping("/requestRide")
 	public int requestRide(@RequestParam int cabId, @RequestParam int rideId, @RequestParam int sourceLoc, @RequestParam int destinationLoc){
-		
+		return 0;
 	}
 
 	@GetMapping("/rideStarted")
-	public int rideStarted(@RequestParam int cabId, @RequestParam int rideId){
-		
+	public boolean rideStarted(@RequestParam int cabId, @RequestParam int rideId){
+
+		/*
+			This request is triggered by RideService.requestRide. If cabId is valid
+			and if this cab is currently in committed state due to a previously
+			received Cab.requestRide request for the same rideId, then move into
+			giving-ride state and return true, otherwise do not change state and
+			return false.
+		 */
+
+		if(this.cabs.containsKey(cabId)){
+
+			int state = this.cabs.get(cabId).getState();
+			int rideIdSaved = this.cabs.get(cabId).getRideId();
+
+			if(rideIdSaved == rideId && state == 1){
+
+				this.cabs.get(cabId).setState(2);
+				return true;
+			}
+			else{
+				return false;
+			}
+
+		}
+		else
+		{
+			return false;
+		}
 	}
 
 	@GetMapping("/rideCancelled")
 	public int rideCancelled(@RequestParam int cabId, @RequestParam int rideId){
-		
+		return 0;
 	}
 
 	@GetMapping("/rideEnded")
-	public int rideEnded(@RequestParam int cabId, @RequestParam int rideId){
-		
+	public boolean rideEnded(@RequestParam int cabId, @RequestParam int rideId){
+
 	}
 
 	@GetMapping("/signIn")
-	public int signIn(@RequestParam int cabId, @RequestParam int initialPos){
-		
+	public boolean signIn(@RequestParam int cabId, @RequestParam int initialPos){
+
+		/*
+		 * This is similar to the one we have dealt below. We have not dealt it yet
+		 * 
+		 */
+
+		if(this.cabs.containsKey(cabId)){
+
+			// Then we have to check for its state
+			int state = this.cabs.get(cabId).getState();
+
+			if(state < 0){
+
+				// Make a request to rideservice instance
+
+				Map<String, String> test1 = Map.of(
+					"cabId", Integer.toString(cabId),
+					"initialPos", Integer.toString(initialPos));
+
+				boolean response = make_request( "cabSignsOut" , 8081 , test1);
+
+				if(response == true){
+					this.cabs.get(cabId).setState(0); // Setting it to signed in
+					this.cabs.get(cabId).setPosition(initialPos); // Setting the initial pos
+				}
+
+				return response;
+			}
+			else{
+				return false;
+			}
+
+		}
+		else{
+			return false;
+		}
 	}
 
 	@GetMapping("/signOut")
-	public int signOut(@RequestParam int cabId){
-		
+	public boolean signOut(@RequestParam int cabId){
+		/*
+		 * Cab Driver sends this request.
+		 * If the cabId is valid and is in signedIn state, request RideService.cabSignsOut
+		 * Forward the message to the Driver. 
+		 * if the response was true then go to signOut stage.
+		 * 
+		 * If i lock the object belonging to cabId, then as we are waiting for the RideService, there will be unnecessary waiting period.
+		 * Lets for now not take the locks. As all the things here are getting changed by the rideservice 
+		 */
+
+		if(this.cabs.containsKey(cabId)){
+
+			// Then we have to check for its state
+			int state = this.cabs.get(cabId).getState();
+
+			if(state >= 0){
+
+				// Make a request to rideservice instance
+
+				Map<String, String> test1 = Map.of("cabId", Integer.toString(cabId));
+				boolean response = make_request( "cabSignsOut" , 8081 , test1);
+
+				if(response == true){
+					this.cabs.get(cabId).setState(-1); // Setting it to signed out
+				}
+
+				return response;
+			}
+			else{
+				return false;
+			}
+
+		}
+		else{
+			return false;
+		}
+
 	}
 
 	@GetMapping("/numRides")

@@ -6,12 +6,24 @@ public class Cab {
     private int no_of_reqs;
     private int position;
     private int no_of_rides;
+    private int rideId;
+
+    public int getRideId() {
+        return rideId;
+    }
+
+
+    public void setRideId(int rideId) {
+        this.rideId = rideId;
+    }
+
 
     public Cab(){
         this.state = -1;
         this.no_of_reqs = 0;
         this.position = -1; // Means it does not matter at this point
         this.no_of_rides = 0;
+        this.rideId = -1; // Means it does not matter at this point
     }
 
 
