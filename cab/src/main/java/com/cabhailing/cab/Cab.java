@@ -1,5 +1,8 @@
 package com.cabhailing.cab;
 
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.locks.Lock;
+
 public class Cab {
     
     private int state;
@@ -7,14 +10,27 @@ public class Cab {
     private int position;
     private int no_of_rides;
     private int rideId;
+    private final ReentrantReadWriteLock rwl = new ReentrantReadWriteLock(true);
+    private final Lock r = rwl.readLock();
+    private final Lock w = rwl.writeLock();
 
-    public int getRideId() {
-        return rideId;
+    /*
+     * Lock Methods to lock the object from the controller.
+     */
+    public void getReadLock(){
+        r.lock();
     }
 
+    public void releaseReadLock(){
+        r.unlock();
+    }
 
-    public void setRideId(int rideId) {
-        this.rideId = rideId;
+    public void getWriteLock(){
+        w.lock();
+    }
+
+    public void releaseWriteLock(){
+        w.unlock();
     }
 
 
@@ -26,6 +42,14 @@ public class Cab {
         this.rideId = -1; // Means it does not matter at this point
     }
 
+
+    public int getRideId() {
+        return rideId;
+    }
+    
+    public void setRideId(int rideId) {
+        this.rideId = rideId;
+    }
 
     public int getNo_of_rides() {
 
