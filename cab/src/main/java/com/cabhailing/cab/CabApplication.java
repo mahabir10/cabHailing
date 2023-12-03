@@ -4,8 +4,12 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
+import java.net.http.*;
+import java.net.http.HttpResponse.BodyHandlers;
+import java.net.URISyntaxException;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -79,6 +83,60 @@ public class CabApplication {
 
 	}
 
+	private String make_request( String service, int port, Map<String, String> parameters){
+		/*
+		 * The purpose of this function is to send the request to localhost:<port>/<service>?<parameters>
+		 */
+
+		// First form the url
+		String url = "https://localhost:" + port + "/";
+
+		if(!parameters.isEmpty()){
+
+			url+="?";
+
+			for(Map.Entry<String, String> entry: parameters.entrySet()){
+
+				String key = entry.getKey();
+				String value = entry.getValue();
+
+				if(!url.endsWith("?")){
+					url+="&";
+				}
+				url+=key + "=" + value;
+			}
+		}
+
+		System.out.println("Url Formed = " + url);
+
+		HttpClient client = HttpClient.newHttpClient();
+
+		try{
+
+			HttpRequest request = HttpRequest.newBuilder()
+			.uri(new URI(url))
+			.GET()
+			.build();
+
+			try{
+				HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
+				return response.body();
+			}
+			catch(Exception e){
+				System.out.println("Got exception while sending Request");
+				e.printStackTrace();
+				return "";
+			}
+
+		}
+		catch(URISyntaxException e){
+			System.out.println("The URL syntax is wrong, got this error " + e);
+			return "";
+		}
+		
+
+	}
+
 	public static void main(String[] args) {
 		SpringApplication.run(CabApplication.class, args);
 	}
@@ -128,7 +186,7 @@ public class CabApplication {
 
 	@GetMapping("/rideEnded")
 	public boolean rideEnded(@RequestParam int cabId, @RequestParam int rideId){
-
+		return false;
 	}
 
 	@GetMapping("/signIn")
@@ -157,7 +215,9 @@ public class CabApplication {
 						"cabId", Integer.toString(cabId),
 						"initialPos", Integer.toString(initialPos));
 
-					boolean response = make_request( "cabSignsOut" , 8081 , test1);
+					
+					String url_response = make_request( "cabSignsIn" , 8081 , test1);
+					boolean response = Boolean.parseBoolean(url_response);
 
 					if(response == true){
 						this.cabs.get(cabId).setState(0); // Setting it to signed in
@@ -207,7 +267,9 @@ public class CabApplication {
 					// Make a request to rideservice instance
 
 					Map<String, String> test1 = Map.of("cabId", Integer.toString(cabId));
-					boolean response = make_request( "cabSignsOut" , 8081 , test1);
+
+					String url_response = make_request( "cabSignsOut" , 8081 , test1);
+					boolean response = Boolean.valueOf(url_response);
 
 					if(response == true){
 						this.cabs.get(cabId).setState(-1); // Setting it to signed out
@@ -240,7 +302,15 @@ public class CabApplication {
 		 */
 
 		if(this.cabs.containsKey(cabId)){
-			return this.cabs.get(cabId).getNo_of_rides();
+
+			try{
+				this.cabs.get(cabId).getReadLock();
+				return this.cabs.get(cabId).getNo_of_rides();
+			}
+			finally{
+				this.cabs.get(cabId).releaseReadLock();
+			}
+			
 		}
 		else{
 			// This is for the invalid cabId
