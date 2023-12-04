@@ -83,13 +83,15 @@ public class CabApplication {
 
 	}
 
-	private String make_request( String service, int port, Map<String, String> parameters){
+	private String make_request( String service, int port, Map<String, String> parameters, String return_default){
 		/*
 		 * The purpose of this function is to send the request to localhost:<port>/<service>?<parameters>
+		 * return_default will be sent incase the request is not processed. (Or not processed in time)
+		 * The above thing in bracket is not being handled. Otherwise that will create inconsistencies
 		 */
 
 		// First form the url
-		String url = "https://localhost:" + port + "/";
+		String url = "https://localhost:" + port + "/" + service;
 
 		if(!parameters.isEmpty()){
 
@@ -123,9 +125,9 @@ public class CabApplication {
 				return response.body();
 			}
 			catch(Exception e){
-				System.out.println("Got exception while sending Request");
+				System.out.println("Got exception while sending Request, Returning default return statement");
 				e.printStackTrace();
-				return "";
+				return return_default;
 			}
 
 		}
@@ -143,8 +145,49 @@ public class CabApplication {
 
 
 	@GetMapping("/requestRide")
-	public int requestRide(@RequestParam int cabId, @RequestParam int rideId, @RequestParam int sourceLoc, @RequestParam int destinationLoc){
-		return 0;
+	public boolean requestRide(@RequestParam int cabId, @RequestParam int rideId, @RequestParam int sourceLoc, @RequestParam int destinationLoc){
+		
+		if(this.cabs.containsKey(cabId)){
+
+			try{
+				this.cabs.get(cabId).getWriteLock();
+
+				int state = this.cabs.get(cabId).getState();
+				
+				if(state == 0){
+
+					int no_reqs = this.cabs.get(cabId).incNo_of_reqs();
+
+					if(no_reqs%2 == 0){
+
+						// This means we are accepting reqs
+						// We will go to committed state
+
+						this.cabs.get(cabId).setState(1);
+						this.cabs.get(cabId).setRideId(rideId);
+						this.cabs.get(cabId).setDestinationLoc(destinationLoc);
+
+						return true;
+					}
+					else{
+						return false;
+					}
+
+				}
+				else{
+					return false;
+				}
+
+			}
+			finally{
+				this.cabs.get(cabId).releaseWriteLock();
+			}
+
+		}
+		else{
+			return false;
+		}
+
 	}
 
 	@GetMapping("/rideStarted")
@@ -160,18 +203,24 @@ public class CabApplication {
 
 		if(this.cabs.containsKey(cabId)){
 
-			int state = this.cabs.get(cabId).getState();
-			int rideIdSaved = this.cabs.get(cabId).getRideId();
+			try{
+				this.cabs.get(cabId).getWriteLock();
 
-			if(rideIdSaved == rideId && state == 1){
+				int state = this.cabs.get(cabId).getState();
+				int rideIdSaved = this.cabs.get(cabId).getRideId();
 
-				this.cabs.get(cabId).setState(2);
-				return true;
+				if(rideIdSaved == rideId && state == 1){
+					this.cabs.get(cabId).setState(2);
+					return true;
+				}
+				else{
+					return false;
+				}
+
 			}
-			else{
-				return false;
+			finally{
+				this.cabs.get(cabId).releaseWriteLock();
 			}
-
 		}
 		else
 		{
@@ -180,22 +229,100 @@ public class CabApplication {
 	}
 
 	@GetMapping("/rideCancelled")
-	public int rideCancelled(@RequestParam int cabId, @RequestParam int rideId){
-		return 0;
+	public boolean rideCancelled(@RequestParam int cabId, @RequestParam int rideId){
+		
+		if(this.cabs.containsKey(cabId)){
+
+			try{
+				this.cabs.get(cabId).getWriteLock();
+
+				int state = this.cabs.get(cabId).getState();
+
+				if(state == 1){
+
+					// The cab is in committed state
+					int rideIdSaved = this.cabs.get(cabId).getRideId();
+
+					if(rideIdSaved == rideId){
+
+						this.cabs.get(cabId).setState(0);
+						return true;
+					}
+					else{
+						return false;
+					}
+
+				}
+				else {
+					return false;
+				}
+			}
+			finally{
+				this.cabs.get(cabId).releaseWriteLock();
+			}
+
+		}
+		else{
+			return false;
+		}
+
 	}
 
 	@GetMapping("/rideEnded")
 	public boolean rideEnded(@RequestParam int cabId, @RequestParam int rideId){
-		return false;
+
+		if(this.cabs.containsKey(cabId)){
+
+			try{
+				this.cabs.get(cabId).getWriteLock();
+
+				int state = this.cabs.get(cabId).getState();
+				if(state == 2){
+
+					int rideIdSaved = this.cabs.get(cabId).getRideId();
+
+					if(rideIdSaved == rideId){
+						
+						// According to the requirement i will first go to available state and then send request.
+						// But i would prefer asking the rideService first. If it returns true then i would go to available state and change the postition
+						// But currently going with the requirement part.
+
+						this.cabs.get(cabId).setState(0); // Setting available state
+						this.cabs.get(cabId).setPosition(this.cabs.get(cabId).getDestinationLoc()); 
+
+						Map<String, String> test1 = Map.of(
+						"rideId", Integer.toString(rideId));
+						String url_response = make_request( "rideEnded" , 8081 , test1, "true");
+						boolean response = Boolean.parseBoolean(url_response); // This is not used as per the requirement
+
+						assert(response == true);
+
+						return true;
+						
+					}
+					else{
+						// We got invalid rideId. The saved rideId did not match the rideId requested
+						return false;
+					}
+				}
+				else{
+					// Cab is not in giving-ride state
+					return false;
+				}
+			}
+			finally{
+				this.cabs.get(cabId).releaseWriteLock();
+			}
+		}
+		else{
+			return false;
+		}
+
 	}
 
 	@GetMapping("/signIn")
 	public boolean signIn(@RequestParam int cabId, @RequestParam int initialPos){
 
-		/*
-		 * This is similar to the one we have dealt below. We have not dealt it yet
-		 * 
-		 */
 
 		if(this.cabs.containsKey(cabId)){
 
@@ -216,7 +343,7 @@ public class CabApplication {
 						"initialPos", Integer.toString(initialPos));
 
 					
-					String url_response = make_request( "cabSignsIn" , 8081 , test1);
+					String url_response = make_request( "cabSignsIn" , 8081 , test1, "false");
 					boolean response = Boolean.parseBoolean(url_response);
 
 					if(response == true){
@@ -268,7 +395,7 @@ public class CabApplication {
 
 					Map<String, String> test1 = Map.of("cabId", Integer.toString(cabId));
 
-					String url_response = make_request( "cabSignsOut" , 8081 , test1);
+					String url_response = make_request( "cabSignsOut" , 8081 , test1, "false");
 					boolean response = Boolean.valueOf(url_response);
 
 					if(response == true){

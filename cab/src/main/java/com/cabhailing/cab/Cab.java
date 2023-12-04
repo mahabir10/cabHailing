@@ -37,12 +37,11 @@ public class Cab {
 
     public Cab(){
         this.state = -1;
-        this.no_of_reqs = 0;
+        this.no_of_reqs = -1; // The first request will increment this.
         this.position = -1; // Means it does not matter at this point
         this.no_of_rides = 0;
         this.ride = new Request(-1, -1); // Means it does not matter at this point
     }
-
 
     public int getRideId() {
         return this.ride.getRideId();
@@ -87,6 +86,11 @@ public class Cab {
     public int getNo_of_reqs() {
         return no_of_reqs;
     }
+
+    public int incNo_of_reqs() {
+        return ++(this.no_of_reqs);
+    }
+
     public void setNo_of_reqs(int no_of_reqs) {
         this.no_of_reqs = no_of_reqs;
     }
