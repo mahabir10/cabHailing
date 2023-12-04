@@ -249,7 +249,7 @@ public class CabApplication {
 					if(rideIdSaved == rideId){
 
 						this.cabs.get(cabId).setState(0);
-						this.cabs.get(cabId).setPosition(this.cabs.get(cabId).getSourceLoc());
+						// this.cabs.get(cabId).setPosition(this.cabs.get(cabId).getSourceLoc());
 						return true;
 					}
 					else{
