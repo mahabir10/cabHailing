@@ -59,8 +59,7 @@ Below are the end-points you can use to get the requirement of your choice.
 
   Returns the numberof rides given by the current cab. Also the currently giving ride also count as 1.
 
-
-
+_________________________________________________________________________________________________________________________________
 
 **Wallet Microservice.**
 To run this service,
