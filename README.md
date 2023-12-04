@@ -1,6 +1,6 @@
 # cabHailing
 
-Cab Microservice.
+**Cab Microservice.**
 To run this service,
 
 1. Build the wallet package: Use /mvnw package, from the cab directory to generate the jar file.
@@ -62,7 +62,7 @@ Below are the end-points you can use to get the requirement of your choice.
 
 
 
-Wallet Microservice.
+**Wallet Microservice.**
 To run this service,
 
 1. Build the wallet package: Use /mvnw package, from the wallet directory to generate the jar file.
