@@ -9,7 +9,8 @@ public class Cab {
     private int no_of_reqs;
     private int position;
     private int no_of_rides;
-    private int rideId;
+    private Request ride;
+
     private final ReentrantReadWriteLock rwl = new ReentrantReadWriteLock(true);
     private final Lock r = rwl.readLock();
     private final Lock w = rwl.writeLock();
@@ -39,16 +40,24 @@ public class Cab {
         this.no_of_reqs = 0;
         this.position = -1; // Means it does not matter at this point
         this.no_of_rides = 0;
-        this.rideId = -1; // Means it does not matter at this point
+        this.ride = new Request(-1, -1); // Means it does not matter at this point
     }
 
 
     public int getRideId() {
-        return rideId;
+        return this.ride.getRideId();
     }
     
     public void setRideId(int rideId) {
-        this.rideId = rideId;
+        this.ride.setRideId(rideId);
+    }
+
+    public int getDestinationLoc() {
+        return this.ride.getDestinationLoc();
+    }
+
+    public void setDestinationLoc(int destinationLoc){
+        this.ride.setDestinationLoc(destinationLoc);
     }
 
     public int getNo_of_rides() {
