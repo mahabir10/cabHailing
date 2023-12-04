@@ -165,6 +165,7 @@ public class CabApplication {
 
 						this.cabs.get(cabId).setState(1);
 						this.cabs.get(cabId).setRideId(rideId);
+						this.cabs.get(cabId).setSourceLoc(sourceLoc);
 						this.cabs.get(cabId).setDestinationLoc(destinationLoc);
 
 						return true;
@@ -211,6 +212,8 @@ public class CabApplication {
 
 				if(rideIdSaved == rideId && state == 1){
 					this.cabs.get(cabId).setState(2);
+					this.cabs.get(cabId).incNo_of_rides();
+					this.cabs.get(cabId).setPosition(this.cabs.get(cabId).getSourceLoc());
 					return true;
 				}
 				else{
@@ -246,6 +249,7 @@ public class CabApplication {
 					if(rideIdSaved == rideId){
 
 						this.cabs.get(cabId).setState(0);
+						this.cabs.get(cabId).setPosition(this.cabs.get(cabId).getSourceLoc());
 						return true;
 					}
 					else{

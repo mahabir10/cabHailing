@@ -40,7 +40,7 @@ public class Cab {
         this.no_of_reqs = -1; // The first request will increment this.
         this.position = -1; // Means it does not matter at this point
         this.no_of_rides = 0;
-        this.ride = new Request(-1, -1); // Means it does not matter at this point
+        this.ride = new Request(-1, -1, -1); // Means it does not matter at this point
     }
 
     public int getRideId() {
@@ -59,6 +59,14 @@ public class Cab {
         this.ride.setDestinationLoc(destinationLoc);
     }
 
+    public int getSourceLoc(){
+        return this.ride.getSourceLoc();
+    }
+
+    public void setSourceLoc(int sourceLoc){
+        this.ride.setSourceLoc(sourceLoc);
+    }
+
     public int getNo_of_rides() {
 
         /*
@@ -75,6 +83,10 @@ public class Cab {
 
     public void setNo_of_rides(int no_of_rides) {
         this.no_of_rides = no_of_rides;
+    }
+
+    public int incNo_of_rides(){
+        return ++(this.no_of_rides);
     }
 
     public int getState() {
@@ -101,5 +113,4 @@ public class Cab {
         this.position = position;
     }
 
-    
 }

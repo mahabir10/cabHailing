@@ -1,5 +1,67 @@
 # cabHailing
 
+Cab Microservice.
+To run this service,
+
+1. Build the wallet package: Use /mvnw package, from the cab directory to generate the jar file.
+2. Build the Docker image using: docker build --build-arg JAR_FILE=target/*.jar -t cab .
+3. Run the Docker image using: docker run -p 8080:8080 -v <absolute-path-of-test.txt>:/test.txt cab
+
+<absolute-path-of-text.txt> This is the test file which will provide the customer ids and their balance information. So provide the absolute path where you want to run this docker image.
+
+Now the wallet service is hosted at localhost:8080
+
+Below are the end-points you can use to get the requirement of your choice.
+
+
+1. boolean requestRide(int cabId, int rideId, int sourceLoc, int destinationLoc):
+  Example - localhost:8080/requestRide?cabId=101&rideId=988734&sourceLoc=0&destinationLoc=10
+
+  This is sent by rideservice. If the current cab is in available state and it is accepting request then we will generate and request instance. 
+  This request instance will store the rideId, sourceLoc and destinationLoc.
+
+  So, if ride gets cancelled then the cab will be at sourceLoc, If the ride ends then the cabs postition will be at destinationLoc.
+
+  It returns true if the cab has accepted the request.
+
+2. boolean rideStarted(int cabId, int rideId):
+  Example - localhost:8080/rideStarted?cabId=101&rideId=988734
+
+  This is also sent by rideService. If the cab is in commited state due to the previously requested rideId, then it goes to the giving ride state.
+  The location is also updated to the sourceLoc of the request.
+
+3. boolean rideCancelled(int cabId, int rideId):
+  Example - localhost:8080/rideCancelled?cabId=101&rideId=988734
+
+  This is also sent by rideService. If the cab is in commited state due to the previously requested rideId, then it goes to the available state.
+  The location is also updated to the sourceLoc of the request.
+
+4. boolean rideEnded(int cabId, int rideId):
+  Example - localhost:8080/rideEnded?cabId=101&rideId=988734
+
+  This is sent by the driver. If the cab is in giving ride state due to the previously requested rideId, then it goes to the available state.
+  The location is also updated to the destinationLoc of the request.
+
+5. boolean signIn(int cabId, int initialPos):
+  Example - localhost:8080/signIn?cabId=101&initialPos=5
+
+  Checks if the cab is in signedout state. If it is then it makes it requests the rideservice instance, and if the 
+  message is true then the cab is signed in and updates the postition as initialPos.
+
+6. boolean signOut(int cabId):
+  Example - localhost:8080/signOut?cabId=101
+
+  Checks if it is in signed in state, then it asks the rideservice to signout this cab.
+  If the returned message is true, then it makes the cab signed out
+
+7. int numRides(@RequestParam int cabId):
+  Example - localhost:8080/numRides?cabId=101
+
+  Returns the numberof rides given by the current cab. Also the currently giving ride also count as 1.
+
+
+
+
 Wallet Microservice.
 To run this service,
 
