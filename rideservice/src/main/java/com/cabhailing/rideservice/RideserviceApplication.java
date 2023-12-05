@@ -6,15 +6,38 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
+import org.hibernate.mapping.Collection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+class CabComparator implements Comparator<Cab> { 
+	
+	private int position;
+
+	public CabComparator(int position) {
+		this.position = position;
+	}
+
+	// override the compare() method 
+	public int compare(Cab c1, Cab c2) 
+	{ 
+		// Now we have to calculate the distance betweec the c1's postition and current postition
+		int dist1 = Math.abs(position - c1.getPosition());
+		int dist2 = Math.abs(position - c2.getPosition());
+		
+		return dist1-dist2;
+	} 
+}
 
 @SpringBootApplication
 @RestController
@@ -204,6 +227,74 @@ public class RideserviceApplication {
 		 * 1. First generate a globally unique rideId
 		 * 
 		 */
+		Random rand = new Random(System.currentTimeMillis());
+		int rideId = rand.nextInt(1000000000); // Generating random upto 10^9, We can take the current time in millis also
+
+		List<Cab> allCabs = this.cabRepository.findAll();
+		Collections.sort(allCabs, new CabComparator(sourceLoc));
+
+
+		// Now we have to ask the cabs in increasing order of their distance
+		int asked = 0;
+		for(Cab cab : allCabs){
+
+			if(cab.getState() == 0){
+
+				// We have to send the current cab the cab.getRequest()
+				int cabId = cab.getCabId();
+				Map<String, String> test1 = Map.of(
+							"cabId", Integer.toString(cabId),
+							"rideId", Integer.toString(rideId),
+							"sourceLoc", Integer.toString(sourceLoc),
+							"destinationLoc", Integer.toString(destinationLoc));
+				String url_response = make_request( "requestRide" , 8080 , test1, "false");
+				boolean response = Boolean.parseBoolean(url_response); // This is not used as per the requirement
+
+				if(response == true){
+					// This means that the cab has accepted the request.
+
+					// We need to calculate fare, and try to cut the amount from the customers wallet
+					int cab_position = cab.getPosition();
+					int fare  = 10*( Math.abs(cab_position - sourceLoc) + Math.abs(sourceLoc - destinationLoc) ); 
+
+					// We need to cut the fare from the customers wallet.
+					Map<String, String> test2 = Map.of(
+							"custId", Integer.toString(custId),
+							"amount", Integer.toString(fare));
+					String url_response2 = make_request( "deductAmount" , 8082 , test2, "false");
+					boolean cut_possible = Boolean.parseBoolean(url_response2); // This is not used as per the requirement
+
+					if(cut_possible){
+						
+						// We have to send rideStarted
+						Map<String, String> test3 = Map.of(
+							"cabId", Integer.toString(cabId),
+							"rideId", Integer.toString(rideId));
+						String url_response3 = make_request( "rideStarted" , 8080 , test3, "false");
+						boolean ride_started = Boolean.parseBoolean(url_response3); // This is not used as per the requirement
+						return rideId;
+
+					}
+					else{
+						// We have to send rideStarted
+						Map<String, String> test3 = Map.of(
+							"cabId", Integer.toString(cabId),
+							"rideId", Integer.toString(rideId));
+						String url_response3 = make_request( "rideCancelled" , 8080 , test3, "false");
+						boolean ride_cancelled = Boolean.parseBoolean(url_response3); // This is not used as per the requirement
+						
+						return -1;
+					}
+				}
+
+				asked++;
+			}
+
+			if(asked == 3){
+				break;
+			}
+		}
+
 		return -1;
 	}
 
