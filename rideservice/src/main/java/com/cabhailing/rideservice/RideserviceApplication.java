@@ -50,15 +50,15 @@ public class RideserviceApplication {
 		this.cabRepository = cabRepository;
 	}
 
-	private String make_request( String service, int port, Map<String, String> parameters, String return_default){
+	private String make_request( String service, String end_point, int port, Map<String, String> parameters, String return_default){
 		/*
-		 * The purpose of this function is to send the request to localhost:<port>/<service>?<parameters>
+		 * The purpose of this function is to send the request to <service>:<port>/<end_point>?<parameters>
 		 * return_default will be sent incase the request is not processed. (Or not processed in time)
 		 * The above thing in bracket is not being handled. Otherwise that will create inconsistencies
 		 */
 
 		// First form the url
-		String url = "https://localhost:" + port + "/" + service;
+		String url = "http://" + service + ":" + port + "/" + end_point;
 
 		if(!parameters.isEmpty()){
 
@@ -116,7 +116,6 @@ public class RideserviceApplication {
 		return this.cabRepository.findAll();
 
 	}
-
 
 	@GetMapping("/rideEnded")
 	public boolean rideEnded(@RequestParam int rideId) {
@@ -247,7 +246,7 @@ public class RideserviceApplication {
 							"rideId", Integer.toString(rideId),
 							"sourceLoc", Integer.toString(sourceLoc),
 							"destinationLoc", Integer.toString(destinationLoc));
-				String url_response = make_request( "requestRide" , 8080 , test1, "false");
+				String url_response = make_request(  "cab" , "requestRide" , 8080 , test1, "false");
 				boolean response = Boolean.parseBoolean(url_response); // This is not used as per the requirement
 
 				if(response == true){
@@ -261,7 +260,7 @@ public class RideserviceApplication {
 					Map<String, String> test2 = Map.of(
 							"custId", Integer.toString(custId),
 							"amount", Integer.toString(fare));
-					String url_response2 = make_request( "deductAmount" , 8082 , test2, "false");
+					String url_response2 = make_request( "wallet", "deductAmount" , 8082 , test2, "false");
 					boolean cut_possible = Boolean.parseBoolean(url_response2); // This is not used as per the requirement
 
 					if(cut_possible){
@@ -270,8 +269,13 @@ public class RideserviceApplication {
 						Map<String, String> test3 = Map.of(
 							"cabId", Integer.toString(cabId),
 							"rideId", Integer.toString(rideId));
-						String url_response3 = make_request( "rideStarted" , 8080 , test3, "false");
+						String url_response3 = make_request("cab", "rideStarted" , 8080 , test3, "false");
 						boolean ride_started = Boolean.parseBoolean(url_response3); // This is not used as per the requirement
+
+						// Before sending we need to update the dataabase as well
+						cab.setCustId(custId);cab.setDestinationLoc(destinationLoc);cab.setState(2);cab.setRideId(rideId);cab.setPosition(sourceLoc);
+						this.cabRepository.save(cab);
+
 						return rideId;
 
 					}
@@ -280,9 +284,13 @@ public class RideserviceApplication {
 						Map<String, String> test3 = Map.of(
 							"cabId", Integer.toString(cabId),
 							"rideId", Integer.toString(rideId));
-						String url_response3 = make_request( "rideCancelled" , 8080 , test3, "false");
+						String url_response3 = make_request("cab", "rideCancelled" , 8080 , test3, "false");
 						boolean ride_cancelled = Boolean.parseBoolean(url_response3); // This is not used as per the requirement
 						
+						// Before sending we need to update the database
+						cab.setCustId(-1);cab.setDestinationLoc(-1);cab.setState(0);cab.setRideId(-1);
+						this.cabRepository.save(cab);
+
 						return -1;
 					}
 				}
@@ -331,7 +339,7 @@ public class RideserviceApplication {
             int cabId = cab.getCabId();
             Map<String, String> test1 = Map.of(
 						"cabId", Integer.toString(cabId));
-            String url_response = make_request( "rideEnded" , 8080 , test1, "false");
+            String url_response = make_request("cab", "rideEnded" , 8080 , test1, "false");
             boolean response = Boolean.parseBoolean(url_response); // This is not used as per the requirement
         }
 
@@ -341,7 +349,7 @@ public class RideserviceApplication {
             int cabId = cab.getCabId();
             Map<String, String> test1 = Map.of(
 						"cabId", Integer.toString(cabId));
-            String url_response = make_request( "signOut" , 8080 , test1, "false");
+            String url_response = make_request("cab", "signOut" , 8080 , test1, "false");
             boolean response = Boolean.parseBoolean(url_response); // This is not used as per the requirement
         }
 	}

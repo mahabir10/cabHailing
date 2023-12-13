@@ -83,15 +83,15 @@ public class CabApplication {
 
 	}
 
-	private String make_request( String service, int port, Map<String, String> parameters, String return_default){
+	private String make_request( String service, String end_point, int port, Map<String, String> parameters, String return_default){
 		/*
-		 * The purpose of this function is to send the request to localhost:<port>/<service>?<parameters>
+		 * The purpose of this function is to send the request to <service>:<port>/<end_point>?<parameters>
 		 * return_default will be sent incase the request is not processed. (Or not processed in time)
 		 * The above thing in bracket is not being handled. Otherwise that will create inconsistencies
 		 */
 
 		// First form the url
-		String url = "https://localhost:" + port + "/" + service;
+		String url = "http://" + service + ":" + port + "/" + end_point;
 
 		if(!parameters.isEmpty()){
 
@@ -296,7 +296,7 @@ public class CabApplication {
 
 						Map<String, String> test1 = Map.of(
 						"rideId", Integer.toString(rideId));
-						String url_response = make_request( "rideEnded" , 8081 , test1, "true");
+						String url_response = make_request( "rideservice" ,"rideEnded" , 8081 , test1, "true");
 						boolean response = Boolean.parseBoolean(url_response); // This is not used as per the requirement
 
 						assert(response == true);
@@ -347,7 +347,7 @@ public class CabApplication {
 						"initialPos", Integer.toString(initialPos));
 
 					
-					String url_response = make_request( "cabSignsIn" , 8081 , test1, "false");
+					String url_response = make_request( "rideservice", "cabSignsIn" , 8081 , test1, "false");
 					boolean response = Boolean.parseBoolean(url_response);
 
 					if(response == true){
@@ -399,7 +399,7 @@ public class CabApplication {
 
 					Map<String, String> test1 = Map.of("cabId", Integer.toString(cabId));
 
-					String url_response = make_request( "cabSignsOut" , 8081 , test1, "false");
+					String url_response = make_request( "rideservice", "cabSignsOut" , 8081 , test1, "false");
 					boolean response = Boolean.valueOf(url_response);
 
 					if(response == true){
