@@ -317,7 +317,7 @@ public class RideserviceApplication {
 		List<Cab> cabs = this.cabRepository.findByCabId(cabId);
 
 		if(cabs.isEmpty()){
-			return "-1 -1 -1 -1";
+			return "Aisa Kuch Nahi he -1";
 		}
 		else{
 			Cab cab = cabs.get(0);
@@ -334,10 +334,10 @@ public class RideserviceApplication {
 			int destination = cab.getDestinationLoc();
 
 			if(state == 2){
-				return statuses[state] + " " + custId + " " + destination;
+				return statuses[state+1] + " " + position + " " + custId + " " + destination;
 			}
 			else{
-				return statuses[state] + " " + position;
+				return statuses[state+1] + " " + position;
 			}
 		}
 

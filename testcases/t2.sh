@@ -35,8 +35,7 @@ echo "Correct Status for the cab 101"
 fi
 #Step 4 : customer 201 requests a ride
 rideId=$(curl -s \
-"http://localhost:8081/requestRide?custId=201&sourceLoc=110&destinationLoc=20
-0")
+"http://localhost:8081/requestRide?custId=201&sourceLoc=110&destinationLoc=200")
 if [ "$rideId" != "-1" ];
 then
 echo "Ride by customer 201 started"
