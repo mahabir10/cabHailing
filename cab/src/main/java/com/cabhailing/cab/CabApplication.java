@@ -296,7 +296,7 @@ public class CabApplication {
 
 						Map<String, String> test1 = Map.of(
 						"rideId", Integer.toString(rideId));
-						String url_response = make_request( "rideservice" ,"rideEnded" , 8081 , test1, "true");
+						String url_response = make_request( "rideservice" ,"rideEnded" , 8080 , test1, "true");
 						boolean response = Boolean.parseBoolean(url_response); // This is not used as per the requirement
 
 						assert(response == true);
@@ -347,12 +347,13 @@ public class CabApplication {
 						"initialPos", Integer.toString(initialPos));
 
 					
-					String url_response = make_request( "rideservice", "cabSignsIn" , 8081 , test1, "false");
+					String url_response = make_request( "rideservice", "cabSignsIn" , 8080 , test1, "false");
 					boolean response = Boolean.parseBoolean(url_response);
 
 					if(response == true){
 						this.cabs.get(cabId).setState(0); // Setting it to signed in
 						this.cabs.get(cabId).setPosition(initialPos); // Setting the initial pos
+						this.cabs.get(cabId).setNo_of_reqs(-1);
 					}
 
 					return response;
@@ -399,7 +400,7 @@ public class CabApplication {
 
 					Map<String, String> test1 = Map.of("cabId", Integer.toString(cabId));
 
-					String url_response = make_request( "rideservice", "cabSignsOut" , 8081 , test1, "false");
+					String url_response = make_request( "rideservice", "cabSignsOut" , 8080 , test1, "false");
 					boolean response = Boolean.valueOf(url_response);
 
 					if(response == true){

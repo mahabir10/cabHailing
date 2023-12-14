@@ -1,5 +1,12 @@
 # cabHailing
 
+
+**Docker Compose**
+
+docker-compose build --build-arg JAR_FILE="target/*.jar"
+
+docker-compose build --build-arg CAB_JAR_FILE="cab/target/*.jar" --build-arg RIDE_JAR_FILE="rideservice/target/*.jar" --build-arg WALLET_JAR_FILE="wallet/target/*.jar"
+
 **Cab Microservice.**
 To run this service,
 

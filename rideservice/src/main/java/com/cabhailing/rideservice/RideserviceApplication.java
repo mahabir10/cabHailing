@@ -260,7 +260,7 @@ public class RideserviceApplication {
 					Map<String, String> test2 = Map.of(
 							"custId", Integer.toString(custId),
 							"amount", Integer.toString(fare));
-					String url_response2 = make_request( "wallet", "deductAmount" , 8082 , test2, "false");
+					String url_response2 = make_request( "wallet", "deductAmount" , 8080 , test2, "false");
 					boolean cut_possible = Boolean.parseBoolean(url_response2); // This is not used as per the requirement
 
 					if(cut_possible){
@@ -337,8 +337,11 @@ public class RideserviceApplication {
         for(Cab cab: giving_ride_Cabs){
 
             int cabId = cab.getCabId();
+			int rideId = cab.getRideId();
+
             Map<String, String> test1 = Map.of(
-						"cabId", Integer.toString(cabId));
+						"cabId", Integer.toString(cabId),
+						"rideId", Integer.toString(rideId));
             String url_response = make_request("cab", "rideEnded" , 8080 , test1, "false");
             boolean response = Boolean.parseBoolean(url_response); // This is not used as per the requirement
         }
