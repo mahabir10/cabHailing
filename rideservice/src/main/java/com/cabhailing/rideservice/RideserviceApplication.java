@@ -321,7 +321,24 @@ public class RideserviceApplication {
 		}
 		else{
 			Cab cab = cabs.get(0);
-			return cab.getState() + " " + cab.getPosition() + " " + cab.getCustId() + " " + cab.getDestinationLoc();
+			/*
+			 * signed-out/available/committed/giving-ride), its last known position,
+				and if currently in a ride then the custId and destination location
+			*/
+			
+			String[] statuses = new String[]{"signed-out","available","committed","giving-ride"};
+
+			int state = cab.getState();
+			int position = cab.getPosition();
+			int custId = cab.getCustId();
+			int destination = cab.getDestinationLoc();
+
+			if(state == 2){
+				return statuses[state] + " " + custId + " " + destination;
+			}
+			else{
+				return statuses[state] + " " + position;
+			}
 		}
 
 	}
