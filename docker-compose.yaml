@@ -1,8 +1,7 @@
 services:
 
   cab:
-    build: 
-      context: ./cab
+    image: mahabir10/cab
     ports:
       - 8080:8080
     volumes:
@@ -10,8 +9,7 @@ services:
 
 
   rideservice:
-    build:
-      context: ./rideservice
+    image: mahabir10/rideservice
     ports:
       - 8081:8080
     depends_on:
@@ -20,8 +18,7 @@ services:
 
 
   wallet:
-    build:
-      context: ./wallet
+    image: mahabir10/wallet
     ports:
       - 8082:8080
     volumes:
@@ -29,6 +26,6 @@ services:
 
 
   database:
-    build: .
+    image: mahabir10/database
     ports:
       - 5432:5432
